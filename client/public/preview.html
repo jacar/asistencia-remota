@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RemoteConnect Preview</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        .feature h3 {
+            margin-top: 0;
+            color: #ffd700;
+        }
+        .buttons {
+            margin: 2rem 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 0 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background: #ffd700;
+            color: #333;
+            border-color: #ffd700;
+        }
+        .status {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.5rem 0;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4444;
+            animation: pulse 2s infinite;
+        }
+        .status-indicator.online {
+            background: #44ff44;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .footer {
+            margin-top: 3rem;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🖥️</div>
+        <h1 class="title">RemoteConnect Preview</h1>
+        <p class="subtitle">Open Source Remote Desktop Solution</p>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>🚀 Real-time Sessions</h3>
+                <p>Create and join remote desktop sessions instantly with simple room codes</p>
+            </div>
+            <div class="feature">
+                <h3>💬 Live Chat</h3>
+                <p>Built-in messaging system for seamless communication during sessions</p>
+            </div>
+            <div class="feature">
+                <h3>🌐 Web-based</h3>
+                <p>No downloads required - works directly in your browser</p>
+            </div>
+            <div class="feature">
+                <h3>🔒 Secure</h3>
+                <p>WebRTC technology ensures encrypted peer-to-peer connections</p>
+            </div>
+        </div>
+
+        <div class="status">
+            <h3>🔍 Server Status</h3>
+            <div class="status-item">
+                <span>Frontend Server</span>
+                <div class="status-indicator" id="frontend-status"></div>
+            </div>
+            <div class="status-item">
+                <span>Backend Server</span>
+                <div class="status-indicator" id="backend-status"></div>
+            </div>
+            <div class="status-item">
+                <span>WebSocket Connection</span>
+                <div class="status-indicator" id="socket-status"></div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <a href="http://localhost:5173" class="btn btn-primary" target="_blank">🏠 Open App</a>
+            <a href="http://localhost:5173/demo" class="btn" target="_blank">🎮 Try Demo</a>
+            <a href="http://localhost:3001/api/health" class="btn" target="_blank">📊 API Health</a>
+        </div>
+
+        <div class="footer">
+            <p>Built with React, Node.js, Socket.io & WebRTC</p>
+            <p>Open source under MIT License</p>
+        </div>
+    </div>
+
+    <script>
+        // Check server status
+        async function checkStatus() {
+            // Check frontend
+            try {
+                const frontendResponse = await fetch('http://localhost:5173');
+                document.getElementById('frontend-status').classList.add('online');
+            } catch (e) {
+                console.log('Frontend not available');
+            }
+
+            // Check backend
+            try {
+                const backendResponse = await fetch('http://localhost:3001/api/health');
+                if (backendResponse.ok) {
+                    document.getElementById('backend-status').classList.add('online');
+                }
+            } catch (e) {
+                console.log('Backend not available');
+            }
+
+            // Check WebSocket (simplified)
+            try {
+                const ws = new WebSocket('ws://localhost:3001/socket.io/?EIO=4&transport=websocket');
+                ws.onopen = () => {
+                    document.getElementById('socket-status').classList.add('online');
+                    ws.close();
+                };
+            } catch (e) {
+                console.log('WebSocket not available');
+            }
+        }
+
+        // Check status on load
+        setTimeout(checkStatus, 1000);
+        
+        // Recheck every 10 seconds
+        setInterval(checkStatus, 10000);
+    </script>
+</body>
+</html>

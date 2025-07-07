@@ -1,0 +1,47 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js
+.next/
+out/
+
+# Vercel
+.vercel/
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+
+# Backend
+server/node_modules/
+server/logs/
+server/.env
+server/.env.*
+server/uploads/
+
+# Frontend
+client/node_modules/
+client/dist/
+client/.env
+client/.env.*
+
+# Prisma
+server/prisma/dev.db
+server/prisma/dev.db-journal
+
+# Misc
+*.swp
+*.swo
+.idea/
+.vscode/

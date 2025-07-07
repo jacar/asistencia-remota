@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  isOnline  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  hostSessions  Session[] @relation("HostSessions")
+  guestSessions Session[] @relation("GuestSessions")
+  sentMessages  Message[] @relation("SentMessages")
+  files         File[]
+
+  @@map("users")
+}
+
+model Session {
+  id          String    @id @default(cuid())
+  sessionCode String    @unique
+  isActive    Boolean   @default(true)
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  
+  // Host and Guest
+  hostId      String
+  host        User      @relation("HostSessions", fields: [hostId], references: [id])
+  guestId     String?
+  guest       User?     @relation("GuestSessions", fields: [guestId], references: [id])
+  
+  // Session settings
+  allowControl    Boolean @default(true)
+  allowFileTransfer Boolean @default(true)
+  allowChat       Boolean @default(true)
+  
+  // Relations
+  messages Message[]
+  files    File[]
+
+  @@map("sessions")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  timestamp DateTime @default(now())
+  
+  // Relations
+  senderId  String
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id])
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id])
+
+  @@map("messages")
+}
+
+model File {
+  id         String   @id @default(cuid())
+  filename   String
+  originalName String
+  size       Int
+  mimeType   String
+  path       String
+  uploadedAt DateTime @default(now())
+  
+  // Relations
+  uploaderId String
+  uploader   User    @relation(fields: [uploaderId], references: [id])
+  sessionId  String
+  session    Session @relation(fields: [sessionId], references: [id])
+
+  @@map("files")
+}

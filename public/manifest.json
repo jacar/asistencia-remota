@@ -1,0 +1,27 @@
+{
+  "name": "FULLASISTENTE - Control Remoto Profesional",
+  "short_name": "FULLASISTENTE",
+  "description": "Control remoto y asistencia técnica profesional desarrollado por Armando Ovalle",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "es",
+  "dir": "ltr",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "prefer_related_applications": false
+} 

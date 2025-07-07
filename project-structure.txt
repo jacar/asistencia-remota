@@ -1,0 +1,84 @@
+teamviewer-clone/
+├── package.json
+├── README.md
+├── .gitignore
+├── docker-compose.yml
+├── server/
+│   ├── package.json
+│   ├── index.js
+│   ├── .env.example
+│   ├── prisma/
+│   │   ├── schema.prisma
+│   │   └── migrations/
+│   ├── src/
+│   │   ├── controllers/
+│   │   │   ├── authController.js
+│   │   │   ├── sessionController.js
+│   │   │   └── fileController.js
+│   │   ├── middleware/
+│   │   │   ├── auth.js
+│   │   │   └── validation.js
+│   │   ├── routes/
+│   │   │   ├── auth.js
+│   │   │   ├── sessions.js
+│   │   │   └── files.js
+│   │   ├── services/
+│   │   │   ├── socketService.js
+│   │   │   └── webrtcService.js
+│   │   └── utils/
+│   │       ├── database.js
+│   │       └── helpers.js
+│   └── uploads/
+├── client/
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── tailwind.config.js
+│   ├── postcss.config.js
+│   ├── index.html
+│   ├── public/
+│   │   └── favicon.ico
+│   └── src/
+│       ├── main.jsx
+│       ├── App.jsx
+│       ├── components/
+│       │   ├── common/
+│       │   │   ├── Header.jsx
+│       │   │   ├── Footer.jsx
+│       │   │   └── Layout.jsx
+│       │   ├── auth/
+│       │   │   ├── Login.jsx
+│       │   │   └── Register.jsx
+│       │   ├── dashboard/
+│       │   │   ├── Dashboard.jsx
+│       │   │   └── SessionCard.jsx
+│       │   ├── remote/
+│       │   │   ├── RemoteDesktop.jsx
+│       │   │   ├── ScreenShare.jsx
+│       │   │   └── RemoteControl.jsx
+│       │   ├── chat/
+│       │   │   ├── Chat.jsx
+│       │   │   └── Message.jsx
+│       │   └── files/
+│       │       ├── FileTransfer.jsx
+│       │       └── FileList.jsx
+│       ├── pages/
+│       │   ├── Home.jsx
+│       │   ├── Dashboard.jsx
+│       │   ├── Session.jsx
+│       │   └── NotFound.jsx
+│       ├── hooks/
+│       │   ├── useAuth.js
+│       │   ├── useSocket.js
+│       │   └── useWebRTC.js
+│       ├── services/
+│       │   ├── api.js
+│       │   ├── socket.js
+│       │   └── webrtc.js
+│       ├── store/
+│       │   ├── authStore.js
+│       │   └── sessionStore.js
+│       ├── utils/
+│       │   ├── constants.js
+│       │   └── helpers.js
+│       └── styles/
+│           └── globals.css
