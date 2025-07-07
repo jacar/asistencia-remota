@@ -3,6 +3,13 @@ import { Monitor, Shield, Zap, Users, Download, Globe } from "lucide-react"
 import { useEffect } from "react"
 import { toast } from "react-hot-toast"
 import { socketService } from "../services/socket"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "../../../components/ui/carousel"
 
 const Home = () => {
   useEffect(() => {
@@ -25,14 +32,51 @@ const Home = () => {
     }
   }, [])
 
+  const heroSlides = [
+    {
+      title: "Control Remoto Profesional",
+      description: "Accede y controla dispositivos desde cualquier parte del mundo de forma segura y rápida.",
+      color: "from-primary-400 to-primary-600",
+    },
+    {
+      title: "Multiusuario y Colaboración",
+      description: "Permite sesiones con múltiples usuarios y roles para soporte y trabajo en equipo.",
+      color: "from-green-400 to-green-600",
+    },
+    {
+      title: "Transferencia de Archivos",
+      description: "Envía y recibe archivos fácilmente durante la sesión remota.",
+      color: "from-blue-400 to-blue-600",
+    },
+    {
+      title: "Seguridad y Privacidad",
+      description: "Todas las conexiones están cifradas de extremo a extremo.",
+      color: "from-purple-400 to-purple-600",
+    },
+  ]
+
   return (
     <div className="bg-white">
-      {/* Hero Section */}
+      {/* Hero Section con Slider */}
       <div className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
             <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
               <div className="sm:text-center lg:text-left">
+                <Carousel className="w-full max-w-2xl mx-auto mb-8">
+                  <CarouselContent>
+                    {heroSlides.map((slide, idx) => (
+                      <CarouselItem key={idx}>
+                        <div className={`rounded-xl p-8 text-white bg-gradient-to-r ${slide.color} shadow-lg flex flex-col items-center justify-center min-h-[200px]`}>
+                          <h2 className="text-3xl font-bold mb-2 text-center">{slide.title}</h2>
+                          <p className="text-lg text-center">{slide.description}</p>
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </Carousel>
                 <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
                   <span className="block xl:inline">Remote Desktop</span>{" "}
                   <span className="block text-primary-600 xl:inline">Made Simple</span>
