@@ -21,27 +21,37 @@ export const useWebRTC = (sessionId, socket) => {
 
   // Initialize WebRTC connection
   const initializeConnection = useCallback(async () => {
-    if (!socket || !sessionId) return
+    if (!socket || !sessionId) {
+      console.log("❌ WebRTC: Socket o sessionId no disponibles", { socket: !!socket, sessionId })
+      return
+    }
 
     try {
+      console.log("🚀 Inicializando conexión WebRTC...")
       const pc = await webrtcService.createPeerConnection()
       peerConnectionRef.current = pc
 
       // Set up event listeners
       pc.onconnectionstatechange = () => {
         const state = pc.connectionState
+        console.log("🔗 WebRTC Connection State:", state)
         setConnectionState(state)
         setIsConnected(state === "connected")
 
         if (state === "failed") {
+          console.error("❌ WebRTC connection failed")
           toast.error("WebRTC connection failed")
           // Attempt to restart ICE
           pc.restartIce()
+        } else if (state === "connected") {
+          console.log("✅ WebRTC connected successfully")
+          toast.success("WebRTC connected!")
         }
       }
 
       pc.onicecandidate = (event) => {
         if (event.candidate && socket) {
+          console.log("🧊 Enviando ICE candidate")
           socket.emit("webrtc-ice-candidate", {
             sessionId,
             candidate: event.candidate,
@@ -51,13 +61,14 @@ export const useWebRTC = (sessionId, socket) => {
       }
 
       pc.ontrack = (event) => {
-        console.log("Received remote stream")
+        console.log("📹 Received remote stream")
         const [stream] = event.streams
         setRemoteStream(stream)
         remoteStreamRef.current = stream
       }
 
       pc.ondatachannel = (event) => {
+        console.log("📡 Data channel received")
         const channel = event.channel
         setupDataChannel(channel)
       }
@@ -65,48 +76,62 @@ export const useWebRTC = (sessionId, socket) => {
       // Set up socket listeners for WebRTC signaling
       setupSocketListeners()
 
-      console.log("WebRTC connection initialized")
+      console.log("✅ WebRTC connection initialized successfully")
     } catch (error) {
-      console.error("Failed to initialize WebRTC:", error)
+      console.error("❌ Failed to initialize WebRTC:", error)
       toast.error("Failed to initialize connection")
     }
   }, [socket, sessionId])
 
   const setupSocketListeners = useCallback(() => {
-    if (!socket) return
+    if (!socket) {
+      console.log("❌ Socket no disponible para WebRTC listeners")
+      return
+    }
+
+    console.log("🔌 Configurando WebRTC socket listeners...")
 
     socket.on("webrtc-offer", async (data) => {
+      console.log("📞 WebRTC Offer recibido:", data)
       try {
         await webrtcService.handleOffer(peerConnectionRef.current, data.offer)
         const answer = await webrtcService.createAnswer(peerConnectionRef.current)
 
+        console.log("📤 Enviando WebRTC Answer")
         socket.emit("webrtc-answer", {
           sessionId,
           answer,
           targetUserId: data.fromUserId,
         })
       } catch (error) {
-        console.error("Failed to handle offer:", error)
+        console.error("❌ Failed to handle offer:", error)
       }
     })
 
     socket.on("webrtc-answer", async (data) => {
+      console.log("📥 WebRTC Answer recibido:", data)
       try {
         await webrtcService.handleAnswer(peerConnectionRef.current, data.answer)
+        console.log("✅ WebRTC Answer procesado correctamente")
       } catch (error) {
-        console.error("Failed to handle answer:", error)
+        console.error("❌ Failed to handle answer:", error)
       }
     })
 
     socket.on("webrtc-ice-candidate", async (data) => {
+      console.log("🧊 WebRTC ICE candidate recibido:", data)
       try {
         await webrtcService.addIceCandidate(peerConnectionRef.current, data.candidate)
+        console.log("✅ ICE candidate agregado correctamente")
       } catch (error) {
-        console.error("Failed to add ICE candidate:", error)
+        console.error("❌ Failed to add ICE candidate:", error)
       }
     })
 
+    console.log("✅ WebRTC socket listeners configurados")
+
     return () => {
+      console.log("🧹 Limpiando WebRTC socket listeners")
       socket.off("webrtc-offer")
       socket.off("webrtc-answer")
       socket.off("webrtc-ice-candidate")

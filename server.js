@@ -130,6 +130,34 @@ app.prepare().then(() => {
       })
     })
 
+    // WebRTC modern signaling
+    socket.on("webrtc-offer", (data) => {
+      console.log(`📞 WebRTC Offer de ${socket.id} a ${data.targetUserId}`)
+      socket.to(data.targetUserId).emit("webrtc-offer", {
+        offer: data.offer,
+        fromUserId: socket.id,
+        sessionId: data.sessionId,
+      })
+    })
+
+    socket.on("webrtc-answer", (data) => {
+      console.log(`✅ WebRTC Answer de ${socket.id} a ${data.targetUserId}`)
+      socket.to(data.targetUserId).emit("webrtc-answer", {
+        answer: data.answer,
+        fromUserId: socket.id,
+        sessionId: data.sessionId,
+      })
+    })
+
+    socket.on("webrtc-ice-candidate", (data) => {
+      console.log(`🧊 WebRTC ICE candidate de ${socket.id} a ${data.targetUserId}`)
+      socket.to(data.targetUserId).emit("webrtc-ice-candidate", {
+        candidate: data.candidate,
+        fromUserId: socket.id,
+        sessionId: data.sessionId,
+      })
+    })
+
     // Chat messages
     socket.on("chat-message", (data) => {
       console.log(`💬 Mensaje de ${socket.id}: ${data.message}`)
@@ -144,13 +172,22 @@ app.prepare().then(() => {
       const requestingUser = userConnections.get(socket.id)
       const targetUser = userConnections.get(data.targetId)
       
+      console.log("📋 Información de usuarios:", {
+        requestingUser: requestingUser ? "encontrado" : "no encontrado",
+        targetUser: targetUser ? "encontrado" : "no encontrado",
+        targetId: data.targetId
+      })
+      
       // Enviar notificación mejorada al usuario objetivo
-      socket.to(data.targetId).emit("remote-control-request", {
+      const notificationData = {
         fromId: socket.id,
         fromUser: requestingUser,
         timestamp: new Date().toISOString(),
         message: `Usuario ${socket.id} solicita tomar control de tu dispositivo`,
-      })
+      }
+      
+      console.log("📤 Enviando notificación de control remoto:", notificationData)
+      socket.to(data.targetId).emit("remote-control-request", notificationData)
       
       // Notificación push si está disponible
       if (targetUser && targetUser.pushSubscription) {
@@ -160,7 +197,7 @@ app.prepare().then(() => {
     })
 
     socket.on("remote-control-response", (data) => {
-      console.log(`🖱️ Respuesta de control remoto: ${data.allowed}`)
+      console.log(`🖱️ Respuesta de control remoto: ${data.allowed} de ${socket.id} a ${data.targetId}`)
       socket.to(data.targetId).emit("remote-control-response", {
         allowed: data.allowed,
         fromId: socket.id,

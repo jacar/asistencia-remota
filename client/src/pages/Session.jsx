@@ -92,8 +92,44 @@ const Session = () => {
       })
 
       socket.on("remote-control-request", (data) => {
+        console.log("🔔 Notificación de control remoto recibida:", data)
+        // Mostrar modal elegante en lugar de window.confirm
         setControlRequest(data)
         setShowControlDialog(true)
+        
+        // También mostrar toast de notificación
+        toast((t) => (
+          <div className="flex items-center space-x-2">
+            <div className="flex-1">
+              <p className="font-medium">Solicitud de Control Remoto</p>
+              <p className="text-sm text-gray-600">{data.message}</p>
+              <p className="text-xs text-gray-500">Usuario: {data.fromId}</p>
+            </div>
+            <div className="flex space-x-1">
+              <button
+                onClick={() => {
+                  handleControlResponse(true)
+                  toast.dismiss(t.id)
+                }}
+                className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+              >
+                Permitir
+              </button>
+              <button
+                onClick={() => {
+                  handleControlResponse(false)
+                  toast.dismiss(t.id)
+                }}
+                className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+              >
+                Rechazar
+              </button>
+            </div>
+          </div>
+        ), {
+          duration: 10000,
+          position: "top-right",
+        })
       })
 
       socket.on("remote-control-response", (data) => {
