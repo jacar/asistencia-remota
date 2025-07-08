@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_URL || "http://localhost:3001/api",
-  SOCKET_URL: import.meta.env.VITE_SOCKET_URL || "http://localhost:3001",
+  BASE_URL: import.meta.env.VITE_API_URL || "https://asistencia-remota-backend.onrender.com/api",
+  SOCKET_URL: import.meta.env.VITE_SOCKET_URL || "https://asistencia-remota-backend.onrender.com",
   TIMEOUT: 30000,
 }
 
