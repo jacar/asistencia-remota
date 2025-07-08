@@ -26,9 +26,47 @@ const Home = () => {
         toast("Esperando aprobación del host...")
       }
     })
+    
+    // Notificaciones de control remoto
+    socketService.on("remote-control-request", (data) => {
+      toast((t) => (
+        <div className="flex items-center space-x-2">
+          <div className="flex-1">
+            <p className="font-medium">Solicitud de Control Remoto</p>
+            <p className="text-sm text-gray-600">{data.message}</p>
+            <p className="text-xs text-gray-500">Usuario: {data.fromId}</p>
+          </div>
+          <div className="flex space-x-1">
+            <button
+              onClick={() => {
+                socketService.emit("remote-control-response", { allowed: true, targetId: data.fromId })
+                toast.dismiss(t.id)
+              }}
+              className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+            >
+              Permitir
+            </button>
+            <button
+              onClick={() => {
+                socketService.emit("remote-control-response", { allowed: false, targetId: data.fromId })
+                toast.dismiss(t.id)
+              }}
+              className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+            >
+              Rechazar
+            </button>
+          </div>
+        </div>
+      ), {
+        duration: 10000, // 10 segundos para dar tiempo a responder
+        position: "top-right",
+      })
+    })
+    
     return () => {
       socketService.off("permission-denied")
       socketService.off("permission-granted")
+      socketService.off("remote-control-request")
     }
   }, [])
 

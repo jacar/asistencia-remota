@@ -12,6 +12,16 @@ import ScreenShare from "../components/remote/ScreenShare"
 import Chat from "../components/chat/Chat"
 import FileTransfer from "../components/files/FileTransfer"
 import toast from "react-hot-toast"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "../../../components/ui/alert-dialog"
 
 const Session = () => {
   const { sessionId } = useParams()
@@ -27,6 +37,8 @@ const Session = () => {
     allowFileTransfer: true,
     allowChat: true,
   })
+  const [controlRequest, setControlRequest] = useState(null)
+  const [showControlDialog, setShowControlDialog] = useState(false)
 
   // Socket and WebRTC hooks
   const socket = useSocket()
@@ -80,20 +92,16 @@ const Session = () => {
       })
 
       socket.on("remote-control-request", (data) => {
-        const accept = window.confirm(`${data.fromUserId} wants to control your desktop. Allow?`)
-        socket.emit("remote-control-response", {
-          sessionId,
-          accepted: accept,
-          targetUserId: data.fromUserId,
-        })
+        setControlRequest(data)
+        setShowControlDialog(true)
       })
 
       socket.on("remote-control-response", (data) => {
         if (data.accepted) {
           setIsControlling(true)
-          toast.success("Remote control granted!")
+          toast.success("¡Control remoto concedido!")
         } else {
-          toast.error("Remote control denied")
+          toast.error("Control remoto denegado")
         }
       })
 
@@ -149,6 +157,18 @@ const Session = () => {
     if (currentSession?.sessionCode) {
       navigator.clipboard.writeText(currentSession.sessionCode)
       toast.success("Session code copied to clipboard!")
+    }
+  }
+
+  const handleControlResponse = (accepted) => {
+    if (controlRequest) {
+      socket.emit("remote-control-response", {
+        sessionId,
+        accepted,
+        targetUserId: controlRequest.fromId,
+      })
+      setShowControlDialog(false)
+      setControlRequest(null)
     }
   }
 
@@ -422,6 +442,32 @@ const Session = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de solicitud de control remoto */}
+      <AlertDialog open={showControlDialog} onOpenChange={setShowControlDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Solicitud de Control Remoto</AlertDialogTitle>
+            <AlertDialogDescription>
+              {controlRequest?.message || "Un usuario solicita tomar control de tu dispositivo."}
+              <br />
+              <span className="text-sm text-gray-500">
+                Usuario: {controlRequest?.fromId}
+                <br />
+                Hora: {controlRequest?.timestamp ? new Date(controlRequest.timestamp).toLocaleTimeString() : ""}
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => handleControlResponse(false)}>
+              Rechazar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleControlResponse(true)}>
+              Permitir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -139,9 +139,24 @@ app.prepare().then(() => {
     // Remote control
     socket.on("remote-control-request", (data) => {
       console.log(`🖱️ Solicitud de control remoto de ${socket.id} a ${data.targetId}`)
+      
+      // Obtener información del usuario solicitante
+      const requestingUser = userConnections.get(socket.id)
+      const targetUser = userConnections.get(data.targetId)
+      
+      // Enviar notificación mejorada al usuario objetivo
       socket.to(data.targetId).emit("remote-control-request", {
         fromId: socket.id,
+        fromUser: requestingUser,
+        timestamp: new Date().toISOString(),
+        message: `Usuario ${socket.id} solicita tomar control de tu dispositivo`,
       })
+      
+      // Notificación push si está disponible
+      if (targetUser && targetUser.pushSubscription) {
+        // Aquí se enviaría la notificación push
+        console.log(`📱 Enviando notificación push a ${data.targetId}`)
+      }
     })
 
     socket.on("remote-control-response", (data) => {
