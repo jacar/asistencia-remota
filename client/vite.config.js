@@ -13,12 +13,12 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "https://asistencia-remota-backend.onrender.com",
+        target: "https://portafolionext-js.onrender.com",
         changeOrigin: true,
         secure: true,
       },
       "/socket.io": {
-        target: "https://asistencia-remota-backend.onrender.com",
+        target: "https://portafolionext-js.onrender.com",
         changeOrigin: true,
         secure: true,
         ws: true,
