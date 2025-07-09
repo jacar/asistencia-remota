@@ -119,6 +119,43 @@ app.get("/api/health", (req, res) => {
   })
 })
 
+// Info endpoint
+app.get("/api/info", (req, res) => {
+  res.json({
+    name: "RemoteConnect Backend",
+    version: "1.0.0",
+    env: process.env.NODE_ENV || "development",
+    port: process.env.PORT || 3001,
+    timestamp: new Date().toISOString(),
+  })
+})
+
+// Debug endpoint
+app.get("/api/debug", (req, res) => {
+  res.json({
+    hostSocketId,
+    pendingConnections: Array.from(pendingConnections.keys()),
+    timestamp: new Date().toISOString(),
+  })
+})
+
+// Notificaciones endpoint (dummy)
+app.get("/api/notifications", (req, res) => {
+  res.json({
+    notifications: [],
+    message: "Endpoint de notificaciones activo",
+    timestamp: new Date().toISOString(),
+  })
+})
+
+// WebRTC endpoint (dummy)
+app.get("/api/webrtc", (req, res) => {
+  res.json({
+    message: "Endpoint WebRTC activo",
+    timestamp: new Date().toISOString(),
+  })
+})
+
 // Basic routes for demo
 app.get("/api/demo", (req, res) => {
   res.json({
