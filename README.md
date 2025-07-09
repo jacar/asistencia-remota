@@ -152,3 +152,32 @@ CORS_ORIGIN=http://localhost:5173
 
 # Optional: JWT Secret (for authentication)
 # JWT_SECRET=your-super-secret-jwt-key-here
+
+```
+
+# 🚀 Asistencia Remota
+
+## Levantar el proyecto con Docker Compose
+
+1. Clona el repositorio:
+   ```sh
+   git clone https://github.com/jacar/asistencia-remota.git
+   cd asistencia-remota
+   ```
+
+2. Construye y levanta los servicios:
+   ```sh
+   docker-compose up --build
+   ```
+
+3. Accede a las aplicaciones:
+   - **Frontend:** [http://localhost:5174](http://localhost:5174)
+   - **Backend:** [http://localhost:3000](http://localhost:3000)
+
+---
+
+Si tienes algún problema con los puertos, asegúrate de que no estén siendo usados por otros procesos.
+
+¿Dudas o problemas? Abre un issue en el repositorio.
+
+```
