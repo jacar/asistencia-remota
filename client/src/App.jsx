@@ -7,6 +7,7 @@ import Preview from "./pages/Preview"
 import NotFound from "./pages/NotFound"
 import { useEffect, useState } from "react"
 import { socketService } from "./services/socket"
+import toast from "react-hot-toast"
 import {
   AlertDialog,
   AlertDialogContent,
@@ -25,11 +26,54 @@ function App() {
   useEffect(() => {
     // Conectar socket al cargar la app (solo para host)
     socketService.connect()
+    
     // Escuchar notificación de conexión externa
     socketService.on("external-connection-request", (data) => {
+      console.log("🔔 Nueva solicitud de conexión externa:", data)
       setExternalRequest(data)
       setModalOpen(true)
+      
+      // Mostrar toast de notificación adicional
+      toast((t) => (
+        <div className="flex items-start space-x-3">
+          <div className="flex-shrink-0">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-bold">🔗</span>
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900">
+              Nueva Conexión Solicitada
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              IP: {data.ip} • {data.deviceInfo?.deviceType} • {data.deviceInfo?.os}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {data.deviceInfo?.browser} • {new Date(data.timestamp).toLocaleTimeString()}
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <button
+              onClick={() => {
+                handlePermission(true)
+                toast.dismiss(t.id)
+              }}
+              className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+            >
+              Permitir
+            </button>
+          </div>
+        </div>
+      ), {
+        duration: 15000,
+        position: "top-right",
+        style: {
+          minWidth: "320px",
+          padding: "12px",
+        },
+      })
     })
+    
     // Limpiar listener al desmontar
     return () => {
       socketService.off("external-connection-request")
@@ -38,10 +82,24 @@ function App() {
 
   const handlePermission = (allowed) => {
     if (externalRequest) {
+      console.log(`${allowed ? '✅' : '❌'} ${allowed ? 'Permitiendo' : 'Rechazando'} conexión de ${externalRequest.ip}`)
+      
       socketService.emit("external-connection-response", {
         socketId: externalRequest.socketId,
         allowed,
       })
+      
+      // Mostrar confirmación
+      toast.success(
+        allowed 
+          ? `✅ Conexión permitida para ${externalRequest.ip}`
+          : `❌ Conexión rechazada para ${externalRequest.ip}`,
+        {
+          duration: 3000,
+          position: "top-right",
+        }
+      )
+      
       setModalOpen(false)
       setExternalRequest(null)
     }
@@ -88,20 +146,59 @@ function App() {
             },
           }}
         />
-        {/* Modal de permiso para nuevas conexiones externas */}
+        
+        {/* Modal mejorado de permiso para nuevas conexiones externas */}
         <AlertDialog open={modalOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="max-w-md">
             <AlertDialogHeader>
-              <AlertDialogTitle>Permitir nueva conexión externa</AlertDialogTitle>
-              <AlertDialogDescription>
-                Un nuevo dispositivo con IP <b>{externalRequest?.ip}</b> solicita conectarse. ¿Deseas permitirlo?
+              <AlertDialogTitle className="flex items-center space-x-2">
+                <span className="text-blue-500">🔗</span>
+                <span>Nueva Conexión Solicitada</span>
+              </AlertDialogTitle>
+              <AlertDialogDescription className="space-y-3">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm font-medium text-gray-900 mb-2">
+                    Dispositivo solicitando acceso:
+                  </p>
+                  <div className="space-y-1 text-xs text-gray-600">
+                    <div className="flex justify-between">
+                      <span>IP:</span>
+                      <span className="font-mono">{externalRequest?.ip}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Dispositivo:</span>
+                      <span>{externalRequest?.deviceInfo?.deviceType}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Sistema:</span>
+                      <span>{externalRequest?.deviceInfo?.os}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Navegador:</span>
+                      <span>{externalRequest?.deviceInfo?.browser}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Hora:</span>
+                      <span>{externalRequest?.timestamp ? new Date(externalRequest.timestamp).toLocaleTimeString() : 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600">
+                  ¿Deseas permitir que este dispositivo se conecte a tu terminal?
+                </p>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => handlePermission(false)}>
+              <AlertDialogCancel 
+                onClick={() => handlePermission(false)}
+                className="bg-red-500 hover:bg-red-600 text-white"
+              >
                 Rechazar
               </AlertDialogCancel>
-              <AlertDialogAction onClick={() => handlePermission(true)}>
+              <AlertDialogAction 
+                onClick={() => handlePermission(true)}
+                className="bg-green-500 hover:bg-green-600 text-white"
+              >
                 Permitir
               </AlertDialogAction>
             </AlertDialogFooter>

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { Monitor, Shield, Zap, Users, Download, Globe } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 import { socketService } from "../services/socket"
 import {
@@ -12,37 +12,119 @@ import {
 } from "../../../components/ui/carousel"
 
 const Home = () => {
+  const [carouselApi, setCarouselApi] = useState(null)
+  const autoPlayRef = useRef()
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    autoPlayRef.current = setInterval(() => {
+      if (carouselApi) {
+        if (carouselApi.canScrollNext()) {
+          carouselApi.scrollNext();
+        } else {
+          carouselApi.scrollTo(0); // Vuelve al inicio
+        }
+      }
+    }, 3000);
+    return () => clearInterval(autoPlayRef.current);
+  }, [carouselApi]);
+
   useEffect(() => {
     // Mostrar mensaje de espera
     socketService.on("permission-denied", (data) => {
-      toast.error(data?.message || "Conexión rechazada por el host.")
+      console.log("❌ Permiso denegado:", data)
+      toast.error(
+        <div className="space-y-1">
+          <p className="font-medium">Conexión Rechazada</p>
+          <p className="text-sm">{data?.message || "El host ha rechazado tu conexión."}</p>
+          {data?.timestamp && (
+            <p className="text-xs text-gray-400">
+              {new Date(data.timestamp).toLocaleTimeString()}
+            </p>
+          )}
+        </div>,
+        {
+          duration: 5000,
+          position: "top-right",
+        }
+      )
     })
+    
     socketService.on("permission-granted", (data) => {
-      toast.success(data?.message || "Conexión aprobada por el host.")
+      console.log("✅ Permiso concedido:", data)
+      toast.success(
+        <div className="space-y-1">
+          <p className="font-medium">Conexión Aprobada</p>
+          <p className="text-sm">{data?.message || "El host ha aprobado tu conexión."}</p>
+          {data?.timestamp && (
+            <p className="text-xs text-gray-400">
+              {new Date(data.timestamp).toLocaleTimeString()}
+            </p>
+          )}
+        </div>,
+        {
+          duration: 5000,
+          position: "top-right",
+        }
+      )
     })
+    
     // Mensaje de espera cuando se une a una sala sin permiso
     socketService.on("permission-denied", (data) => {
       if (data?.message?.includes("Esperando")) {
-        toast("Esperando aprobación del host...")
+        toast(
+          <div className="space-y-1">
+            <p className="font-medium">Esperando Aprobación</p>
+            <p className="text-sm">Tu conexión está pendiente de aprobación del host.</p>
+            <div className="flex items-center space-x-1">
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500"></div>
+              <span className="text-xs text-gray-500">Esperando respuesta...</span>
+            </div>
+          </div>,
+          {
+            duration: 10000,
+            position: "top-right",
+          }
+        )
       }
     })
     
-    // Notificaciones de control remoto
+    // Notificaciones de control remoto mejoradas
     socketService.on("remote-control-request", (data) => {
+      console.log("🎮 Solicitud de control remoto recibida:", data)
       toast((t) => (
-        <div className="flex items-center space-x-2">
-          <div className="flex-1">
-            <p className="font-medium">Solicitud de Control Remoto</p>
-            <p className="text-sm text-gray-600">{data.message}</p>
-            <p className="text-xs text-gray-500">Usuario: {data.fromId}</p>
+        <div className="flex items-start space-x-3">
+          <div className="flex-shrink-0">
+            <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-bold">🎮</span>
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900">
+              Solicitud de Control Remoto
+            </p>
+            <p className="text-xs text-gray-600 mt-1">
+              {data.message || "El técnico solicita controlar tu dispositivo"}
+            </p>
+            {data.fromId && (
+              <p className="text-xs text-gray-500 mt-1">
+                Usuario: {data.fromId}
+              </p>
+            )}
+            {data.timestamp && (
+              <p className="text-xs text-gray-400 mt-1">
+                {new Date(data.timestamp).toLocaleTimeString()}
+              </p>
+            )}
           </div>
           <div className="flex space-x-1">
             <button
               onClick={() => {
                 socketService.emit("remote-control-response", { allowed: true, targetId: data.fromId })
                 toast.dismiss(t.id)
+                toast.success("✅ Control remoto permitido")
               }}
-              className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+              className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
             >
               Permitir
             </button>
@@ -50,16 +132,21 @@ const Home = () => {
               onClick={() => {
                 socketService.emit("remote-control-response", { allowed: false, targetId: data.fromId })
                 toast.dismiss(t.id)
+                toast.error("❌ Control remoto rechazado")
               }}
-              className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+              className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
             >
               Rechazar
             </button>
           </div>
         </div>
       ), {
-        duration: 10000, // 10 segundos para dar tiempo a responder
+        duration: 15000,
         position: "top-right",
+        style: {
+          minWidth: "350px",
+          padding: "12px",
+        },
       })
     })
     
@@ -101,7 +188,7 @@ const Home = () => {
           <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
             <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
               <div className="sm:text-center lg:text-left">
-                <Carousel className="w-full max-w-2xl mx-auto mb-8">
+                <Carousel className="w-full max-w-2xl mx-auto mb-8" setApi={setCarouselApi}>
                   <CarouselContent>
                     {heroSlides.map((slide, idx) => (
                       <CarouselItem key={idx}>

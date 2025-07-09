@@ -22,6 +22,8 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "../../../components/ui/alert-dialog"
+import { useChat } from "../hooks/useChat"
+import ChatBox from "../components/chat/ChatBox"
 
 const Session = () => {
   const { sessionId } = useParams()
@@ -54,6 +56,8 @@ const Session = () => {
     initializeConnection,
     cleanup,
   } = useWebRTC(sessionId, socket)
+
+  const { messages, sendMessage } = useChat(sessionId, user)
 
   const sessionContainerRef = useRef(null)
 
@@ -440,7 +444,7 @@ const Session = () => {
             {/* Chat Panel */}
             {activeTab === "chat" && sessionSettings.allowChat && (
               <div className="bg-gray-800 rounded-lg h-96">
-                <Chat sessionId={sessionId} socket={socket} />
+                <ChatBox messages={messages} sendMessage={sendMessage} />
               </div>
             )}
 

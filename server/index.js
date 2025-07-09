@@ -7,6 +7,53 @@ const compression = require("compression")
 const rateLimit = require("express-rate-limit")
 require("dotenv").config()
 
+// Función para extraer información del dispositivo del User-Agent
+function getDeviceInfo(userAgent) {
+  const ua = userAgent.toLowerCase();
+  
+  let deviceType = "Desktop";
+  let browser = "Unknown";
+  let os = "Unknown";
+  
+  // Detectar tipo de dispositivo
+  if (ua.includes("mobile") || ua.includes("android") || ua.includes("iphone")) {
+    deviceType = "Mobile";
+  } else if (ua.includes("tablet") || ua.includes("ipad")) {
+    deviceType = "Tablet";
+  }
+  
+  // Detectar navegador
+  if (ua.includes("chrome")) {
+    browser = "Chrome";
+  } else if (ua.includes("firefox")) {
+    browser = "Firefox";
+  } else if (ua.includes("safari")) {
+    browser = "Safari";
+  } else if (ua.includes("edge")) {
+    browser = "Edge";
+  }
+  
+  // Detectar sistema operativo
+  if (ua.includes("windows")) {
+    os = "Windows";
+  } else if (ua.includes("mac")) {
+    os = "macOS";
+  } else if (ua.includes("linux")) {
+    os = "Linux";
+  } else if (ua.includes("android")) {
+    os = "Android";
+  } else if (ua.includes("ios")) {
+    os = "iOS";
+  }
+  
+  return {
+    deviceType,
+    browser,
+    os,
+    userAgent: userAgent.substring(0, 100) // Primeros 100 caracteres
+  };
+}
+
 const app = express()
 const server = http.createServer(app)
 const io = socketIo(server, {
@@ -82,7 +129,7 @@ app.get("/api/demo", (req, res) => {
 
 // Variables para gestión de host y permisos
 let hostSocketId = null;
-const pendingConnections = new Map(); // socketId -> { ip, socket }
+const pendingConnections = new Map(); // socketId -> { ip, socket, timestamp }
 
 // Socket.io connection handling
 io.on("connection", (socket) => {
@@ -98,19 +145,37 @@ io.on("connection", (socket) => {
 
   // Si no es el host, pedir permiso al host
   if (socket.id !== hostSocketId) {
-    // Guardar conexión pendiente
-    pendingConnections.set(socket.id, { ip: clientIp, socket });
-    // Notificar al host
-    io.to(hostSocketId).emit("external-connection-request", {
+    // Guardar conexión pendiente con timestamp
+    pendingConnections.set(socket.id, { 
+      ip: clientIp, 
+      socket,
+      timestamp: new Date().toISOString(),
+      userAgent: socket.handshake.headers['user-agent'] || 'Unknown'
+    });
+    
+    // Notificar al host con información detallada
+    const connectionInfo = {
       socketId: socket.id,
       ip: clientIp,
-    });
+      timestamp: new Date().toISOString(),
+      userAgent: socket.handshake.headers['user-agent'] || 'Unknown',
+      message: `Nuevo dispositivo solicitando conexión desde ${clientIp}`,
+      deviceInfo: getDeviceInfo(socket.handshake.headers['user-agent'] || '')
+    };
+    
+    console.log(`🔔 Notificando al host sobre nueva conexión:`, connectionInfo);
+    io.to(hostSocketId).emit("external-connection-request", connectionInfo);
+    
     // Esperar respuesta del host
     socket.data.permissionGranted = false; // Por defecto, no permitido
+    
     // No permitir acceso a salas hasta que el host acepte
     socket.on("join-room", (roomId) => {
       if (!socket.data.permissionGranted) {
-        socket.emit("permission-denied", { message: "Esperando aprobación del host." });
+        socket.emit("permission-denied", { 
+          message: "Esperando aprobación del host para conectarse a la sala.",
+          timestamp: new Date().toISOString()
+        });
         return;
       }
       socket.join(roomId);
@@ -132,9 +197,17 @@ io.on("connection", (socket) => {
     if (pending) {
       if (allowed) {
         pending.socket.data.permissionGranted = true;
-        pending.socket.emit("permission-granted", { message: "Conexión aprobada por el host." });
+        pending.socket.emit("permission-granted", { 
+          message: "Conexión aprobada por el host. Ya puedes unirte a las salas.",
+          timestamp: new Date().toISOString()
+        });
+        console.log(`✅ Conexión aprobada para ${socketId}`);
       } else {
-        pending.socket.emit("permission-denied", { message: "Conexión rechazada por el host." });
+        pending.socket.emit("permission-denied", { 
+          message: "Conexión rechazada por el host.",
+          timestamp: new Date().toISOString()
+        });
+        console.log(`❌ Conexión rechazada para ${socketId}`);
         pending.socket.disconnect(true);
       }
       pendingConnections.delete(socketId);
