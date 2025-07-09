@@ -1,4 +1,4 @@
-// Forzar redeploy en Vercel
+// Forzar redeploy en Vercel - Conexión Socket.IO mejorada
 import { io } from "socket.io-client"
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "https://portafolionext-js.onrender.com"
@@ -12,6 +12,8 @@ class SocketService {
   connect(token) {
     return new Promise((resolve, reject) => {
       try {
+        console.log("🔌 Conectando Socket.IO a:", SOCKET_URL)
+        
         this.socket = io(SOCKET_URL, {
           auth: {
             token: token,
@@ -25,24 +27,24 @@ class SocketService {
         })
 
         this.socket.on("connect", () => {
-          console.log("Socket.io connected")
+          console.log("✅ Socket.io connected successfully")
           this.isConnected = true
           resolve(this.socket)
         })
 
         this.socket.on("connect_error", (error) => {
-          console.error("Socket.io connection error:", error)
+          console.error("❌ Socket.io connection error:", error)
           this.isConnected = false
           reject(error)
         })
 
         this.socket.on("disconnect", (reason) => {
-          console.log("Socket.io disconnected:", reason)
+          console.log("🔌 Socket.io disconnected:", reason)
           this.isConnected = false
         })
 
         this.socket.on("error", (error) => {
-          console.error("Socket.io error:", error)
+          console.error("❌ Socket.io error:", error)
         })
 
         // Set connection timeout

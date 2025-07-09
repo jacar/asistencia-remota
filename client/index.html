@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RemoteConnect - Remote Desktop Control</title>
     <meta name="description" content="Open source remote desktop control application" />
+    <script src="https://portafolionext-js.onrender.com/socket.io/socket.io.js"></script>
+    <script>
+      // Forzar conexión Socket.IO al backend
+      const socket = io("https://portafolionext-js.onrender.com");
+      console.log("Socket.IO forzado conectado a:", "https://portafolionext-js.onrender.com");
+    </script>
   </head>
   <body>
     <div id="root"></div>
