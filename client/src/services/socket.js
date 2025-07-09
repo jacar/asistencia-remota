@@ -1,6 +1,6 @@
 import { io } from "socket.io-client"
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "https://asistencia-remota-backend.onrender.com"
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "https://portafolionext-js.onrender.com"
 
 class SocketService {
   constructor() {
