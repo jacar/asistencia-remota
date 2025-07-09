@@ -164,6 +164,11 @@ app.get("/api/demo", (req, res) => {
   })
 })
 
+// Ruta raíz para evitar 404 en /
+app.get('/', (req, res) => {
+  res.send('Backend de Asistencia Remota activo');
+});
+
 // Variables para gestión de host y permisos
 let hostSocketId = null;
 const pendingConnections = new Map(); // socketId -> { ip, socket, timestamp }
